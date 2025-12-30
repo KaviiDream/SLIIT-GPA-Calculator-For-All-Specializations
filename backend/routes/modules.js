@@ -1,35 +1,50 @@
 const express = require('express');
 const Module = require('../models/Module');
+const Specialization = require('../models/Specialization');
 
 const router = express.Router();
 
-// Fetch modules with optional filtering by year, semester, specialization, or GPA flag.
-router.get('/', async (req, res, next) => {
-	try {
-		const { year, semester, specialization, gpaOnly } = req.query;
-		const filter = {};
+// Get all common modules for years 1 & 2
+router.get('/common', async (req, res) => {
+  try {
+    const modules = await Module.find({
+      year: { $in: [1, 2] },
+      isCommon: true
+    }).sort({ year: 1, semester: 1 });
+    res.json(modules);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-		if (year) {
-			filter.year = Number(year);
-		}
+// Get all specializations
+router.get('/specializations', async (req, res) => {
+  try {
+    const specializations = await Specialization.find().select('-__v');
+    res.json(specializations);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-		if (semester) {
-			filter.semester = Number(semester);
-		}
-
-		if (specialization) {
-			filter.specialization = specialization;
-		}
-
-		if (gpaOnly === 'true') {
-			filter.GPA = true;
-		}
-
-		const modules = await Module.find(filter).sort({ year: 1, semester: 1, moduleCode: 1 });
-		res.json(modules);
-	} catch (error) {
-		next(error);
-	}
+// Get modules for a specific specialization
+router.get('/specialization/:code', async (req, res) => {
+  try {
+    const specialization = await Specialization.findOne({
+      specializationCode: req.params.code
+    }).populate('year3Modules year4Modules');
+    
+    if (!specialization) {
+      return res.status(404).json({ error: 'Specialization not found' });
+    }
+    
+    res.json({
+      year3Modules: specialization.year3Modules,
+      year4Modules: specialization.year4Modules
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Create a new module document.
