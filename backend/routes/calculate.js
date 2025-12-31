@@ -8,7 +8,7 @@ const GPA = {
   'B+': 3.3, 'B': 3.0, 'B-': 2.7,
   'C+': 2.3, 'C': 2.0, 'C-': 1.7,
   'D+': 1.3, 'D': 1.0, 'E': 0.0,
-  'F': 0.0
+
 }
 
 //Calculate GPA
@@ -25,15 +25,15 @@ router.post('/gpa', async (req, res) => {
 
     //Calculate Gpa for each year
 
-    const calculateYearGPA = (yearModules) => {
-        const yearGrades = validModules.filter(m => m.year === yearModules);
+    const calculateYearGPA = (year) => {
+        const yearGrades = validModules.filter(m => m.year === year);
         let totalPoints = 0;
         let totalCredits = 0;
     
-        yearGrades.forEach(grade => {
-          const gradePoint = GPA[grade.grade];
-          totalPoints += gradePoint * grade.credits;
-          totalCredits += grade.credits;
+        yearGrades.forEach(g => {
+          const gradePoint = GPA[g.grade];
+          totalPoints += gradePoint * g.credits;
+          totalCredits += g.credits;
         })
 
         return {
