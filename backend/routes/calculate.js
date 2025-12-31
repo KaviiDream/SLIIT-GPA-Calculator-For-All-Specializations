@@ -1,104 +1,109 @@
 const express = require('express');
-const Specialization = require('../models/Specialization');
-const Module = require('../models/Module');
-
 const router = express.Router();
 
-const gradePointMap = {
-	'A+': 4,
-	A: 4,
-	'A-': 3.7,
-	'B+': 3.3,
-	B: 3,
-	'B-': 2.7,
-	'C+': 2.3,
-	C: 2,
-	'C-': 1.7,
-	'D+': 1.3,
-	D: 1,
-	E: 0,
-	F: 0
-};
+//GPA Calculation logic
 
-// Retrieve available specializations.
-router.get('/', async (req, res, next) => {
-	try {
-		const specializations = await Specialization.find().sort({ specializationNamme: 1 });
-		res.json(specializations);
-	} catch (error) {
-		next(error);
-	}
-});
+const GPA = {
+  'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+  'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+  'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+  'D+': 1.3, 'D': 1.0, 'E': 0.0,
+  'F': 0.0
+}
 
-// Calculate GPA for the provided modules and optional specialization context.
-router.post('/gpa', async (req, res, next) => {
-	try {
-		const { specializationId, modules = [] } = req.body;
+//Calculate GPA
 
-		if (!Array.isArray(modules) || modules.length === 0) {
-			return res.status(400).json({ message: 'modules array with at least one entry is required' });
-		}
+router.post('/gpa', async (req, res) => {
+  try {
+    const { modules } = req.body; // Expecting an array of { credits, grade }
+    if (!modules || !Array.isArray(modules)) {
+      return res.status(400).json({ error: 'Invalid modules data' });
+    }
 
-		let specialization = null;
+    //Filter modules with valid grades
+    const validModules = modules.filter(m => GPA.hasOwnProperty(m.grade) && m.credits > 0);
 
-		if (specializationId) {
-			specialization = await Specialization.findById(specializationId);
+    //Calculate Gpa for each year
 
-			if (!specialization) {
-				return res.status(404).json({ message: 'Specialization not found' });
-			}
-		}
+    const calculateYearGPA = (yearModules) => {
+        const yearGrades = validModules.filter(m => m.year === yearModules);
+        let totalPoints = 0;
+        let totalCredits = 0;
+    
+        yearGrades.forEach(grade => {
+          const gradePoint = GPA[grade.grade];
+          totalPoints += gradePoint * grade.credits;
+          totalCredits += grade.credits;
+        })
 
-		let totalCredits = 0;
-		let totalPoints = 0;
+        return {
+        gpa: totalCredits > 0 ? totalPoints / totalCredits : 0,
+        credits: totalCredits,
+        count: yearGrades.length
+      };
+    };
 
-		for (const entry of modules) {
-			const { moduleId, credits, grade, gradePoint } = entry;
+    const year1GPA = calculateYearGPA(1);
+    const year2GPA = calculateYearGPA(2);
+    const year3GPA = calculateYearGPA(3);
+    const year4GPA = calculateYearGPA(4);
 
-			let resolvedCredits = credits;
 
-			if (!resolvedCredits && moduleId) {
-				const moduleDoc = await Module.findById(moduleId).select('credits');
+    //Calculate CGPA
 
-				if (!moduleDoc) {
-					return res.status(404).json({ message: `Module ${moduleId} not found` });
-				}
+    let cgpaTotalPoints = 0;
+    let cgpaTotalCredits = 0;
 
-				resolvedCredits = moduleDoc.credits;
-			}
+    validModules.forEach(grade => {
+      const gradePoint = GPA[grade.grade];
+      cgpaTotalPoints += gradePoint * grade.credits;
+      cgpaTotalCredits += grade.credits;
+    });
 
-			if (!resolvedCredits || resolvedCredits <= 0) {
-				return res.status(400).json({ message: 'Each module requires a positive credit value' });
-			}
+    const cgpa = cgpaTotalCredits > 0 ? cgpaTotalPoints / cgpaTotalCredits : 0;
 
-			const resolvedGradePoint = typeof gradePoint === 'number' ? gradePoint : gradePointMap[grade];
+    //Calculate WGPA
 
-			if (typeof resolvedGradePoint !== 'number') {
-				return res.status(400).json({ message: `Unsupported grade provided for module ${moduleId || 'entry'}` });
-			}
+    const yearWeights = {1: 0.0, 2: 0.2, 3: 0.3, 4: 0.5};
+    let weightedSum = 0;
+    let totalWeight = 0;
 
-			totalCredits += resolvedCredits;
-			totalPoints += resolvedCredits * resolvedGradePoint;
-		}
+    [year1GPA, year2GPA, year3GPA, year4GPA].forEach((yearGPA, index) => {
+      const year = index + 1;
+      if (yearGPA.credits > 0) {
+        weightedSum += yearGPA.gpa * yearWeights[year];
+        totalWeight += yearWeights[year];
+      }
+    });
 
-		const gpa = totalCredits ? totalPoints / totalCredits : 0;
+    const wgpa = totalWeight > 0 ? weightedSum / totalWeight : 0;
 
-		res.json({
-			specialization: specialization
-				? {
-					  id: specialization._id,
-					  name: specialization.specializationNamme,
-					  minCreditsYear3: specialization.minCreditsYear3,
-					  minCreditsYear4: specialization.minCreditsYear4
-				  }
-				: null,
-			totalCredits,
-			totalPoints,
-			gpa: Number(gpa.toFixed(3))
-		});
-	} catch (error) {
-		next(error);
-	}
+
+    res.json({
+        yearGPAs:{
+            year1: year1GPA.gpa.toFixed(2),
+            year2: year2GPA.gpa.toFixed(2),
+            year3: year3GPA.gpa.toFixed(2),
+            year4: year4GPA.gpa.toFixed(2)
+        },
+
+        yearCredits:{
+            year1: year1GPA.credits,
+            year2: year2GPA.credits,
+            year3: year3GPA.credits,
+            year4: year4GPA.credits
+        },
+
+        cgpa: cgpa.toFixed(2),
+        wgpa: wgpa.toFixed(2),
+        totalCredits: cgpaTotalCredits,
+        totalModules: validModules.length
+    });
+
+
+    } catch (err) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 module.exports = router;
