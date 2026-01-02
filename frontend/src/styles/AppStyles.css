@@ -41,7 +41,7 @@ body {
 }
 
 .app-shell {
-  min-height: 100vh;
+  min-height: 102vh;
   padding: 3rem 1.5rem;
   background: linear-gradient(120deg, #131a33 0%, #1a2045 35%, #2a154f 100%);
 }
