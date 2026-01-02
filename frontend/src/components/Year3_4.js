@@ -37,15 +37,102 @@ const Year3_4 = ({
   // Filter modules
   const filterModules = (modules) => {
     return modules.filter(module => {
+      const moduleName = module.moduleName || '';
+      const moduleCode = module.moduleCode || '';
+      const query = search.toLowerCase();
       const matchesSearch = search === '' || 
-        module.moduleCode.toLowerCase().includes(search.toLowerCase()) ||
-        module.moduleName.toLowerCase().includes(search.toLowerCase());
+        moduleCode.toLowerCase().includes(query) ||
+        moduleName.toLowerCase().includes(query);
       return matchesSearch;
     });
   };
 
+  const groupBySemester = (modules) => {
+    return modules.reduce((acc, module) => {
+      const semesterValue = Number.isFinite(module.semester) ? module.semester : 1;
+      const semesterLabel = `Semester ${semesterValue}`;
+      if (!acc[semesterLabel]) {
+        acc[semesterLabel] = [];
+      }
+      acc[semesterLabel].push(module);
+      return acc;
+    }, {});
+  };
+
   const filteredYear3 = selectedYear === 'all' || selectedYear === '3' ? filterModules(specializationModules.year3) : [];
   const filteredYear4 = selectedYear === 'all' || selectedYear === '4' ? filterModules(specializationModules.year4) : [];
+
+  const renderModuleCard = (module, gradeYear) => {
+    const currentGrade = getCurrentGrade(module.moduleCode);
+    const safeName = module.moduleName || module.moduleCode;
+    const creditLabel = module.credits ? `${module.credits} credits` : 'Credits not set';
+    const semester = Number.isFinite(module.semester) ? module.semester : 1;
+
+    return (
+      <div
+        key={`${module.moduleCode}-${gradeYear}-${semester}`}
+        className={`module-card ${currentGrade ? 'is-selected' : ''}`}
+      >
+        <div className="module-card__header">
+          <div>
+            <span className="code">{module.moduleCode}</span>
+            <p>{safeName}</p>
+          </div>
+          <span className={`chip ${gradeYear === 3 ? 'info' : 'accent'}`}>{creditLabel}</span>
+        </div>
+
+        <select
+          value={currentGrade}
+          onChange={(e) => updateGrade(module.moduleCode, e.target.value, {
+            ...module,
+            year: gradeYear,
+            semester
+          })}
+          className="grade-select"
+        >
+          <option value="">Select Grade</option>
+          {GRADE_OPTIONS.map((grade) => (
+            <option key={grade.value} value={grade.value}>
+              {grade.label}
+            </option>
+          ))}
+        </select>
+
+        {currentGrade && (
+          <div className="module-card__footer">
+            <span className={`chip ${GRADE_COLORS[currentGrade]}`}>
+              Grade {currentGrade}
+            </span>
+            <span className="points">
+              {GRADE_OPTIONS.find(g => g.value === currentGrade)?.points.toFixed(1)} pts
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderGroupedModules = (modules, year) => {
+    const groups = groupBySemester(modules);
+    const groupEntries = Object.entries(groups);
+
+    if (!groupEntries.length) {
+      return (
+        <div className="empty-state">
+          {`No Year ${year} modules found matching your search.`}
+        </div>
+      );
+    }
+
+    return groupEntries.map(([label, group]) => (
+      <div key={`${year}-${label}`} className="module-group animate-slide-up">
+        <div className="module-group__title">Year {year} · {label}</div>
+        <div className="module-grid">
+          {group.map((module) => renderModuleCard(module, year))}
+        </div>
+      </div>
+    ));
+  };
 
   if (!specialization) {
     return (
@@ -135,59 +222,7 @@ const Year3_4 = ({
               <span>{specializationModules.year3.length} total modules</span>
             </div>
             
-            {filteredYear3.length === 0 ? (
-              <div className="empty-state">
-                No Year 3 modules found matching your search.
-              </div>
-            ) : (
-              <div className="module-grid">
-                {filteredYear3.map((module) => {
-                  const currentGrade = getCurrentGrade(module.moduleCode);
-                  
-                  return (
-                    <div
-                      key={module.moduleCode}
-                      className={`module-card ${currentGrade ? 'is-selected' : ''}`}
-                    >
-                      <div className="module-card__header">
-                        <div>
-                          <span className="code">{module.moduleCode}</span>
-                          <p>{module.moduleName}</p>
-                        </div>
-                        <span className="chip info">{module.credits} credits</span>
-                      </div>
-                      
-                      <select
-                        value={currentGrade}
-                        onChange={(e) => updateGrade(module.moduleCode, e.target.value, {
-                          ...module,
-                          year: 3
-                        })}
-                        className="grade-select"
-                      >
-                        <option value="">Select Grade</option>
-                        {GRADE_OPTIONS.map((grade) => (
-                          <option key={grade.value} value={grade.value}>
-                            {grade.label}
-                          </option>
-                        ))}
-                      </select>
-                      
-                      {currentGrade && (
-                        <div className="module-card__footer">
-                          <span className={`chip ${GRADE_COLORS[currentGrade]}`}>
-                            Grade {currentGrade}
-                          </span>
-                          <span className="points">
-                            {GRADE_OPTIONS.find(g => g.value === currentGrade)?.points.toFixed(1)} pts
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {renderGroupedModules(filteredYear3, 3)}
           </div>
         )}
 
@@ -199,59 +234,7 @@ const Year3_4 = ({
               <span>{specializationModules.year4.length} total modules</span>
             </div>
             
-            {filteredYear4.length === 0 ? (
-              <div className="empty-state">
-                No Year 4 modules found matching your search.
-              </div>
-            ) : (
-              <div className="module-grid">
-                {filteredYear4.map((module) => {
-                  const currentGrade = getCurrentGrade(module.moduleCode);
-                  
-                  return (
-                    <div
-                      key={module.moduleCode}
-                      className={`module-card ${currentGrade ? 'is-selected' : ''}`}
-                    >
-                      <div className="module-card__header">
-                        <div>
-                          <span className="code">{module.moduleCode}</span>
-                          <p>{module.moduleName}</p>
-                        </div>
-                        <span className="chip accent">{module.credits} credits</span>
-                      </div>
-                      
-                      <select
-                        value={currentGrade}
-                        onChange={(e) => updateGrade(module.moduleCode, e.target.value, {
-                          ...module,
-                          year: 4
-                        })}
-                        className="grade-select"
-                      >
-                        <option value="">Select Grade</option>
-                        {GRADE_OPTIONS.map((grade) => (
-                          <option key={grade.value} value={grade.value}>
-                            {grade.label}
-                          </option>
-                        ))}
-                      </select>
-                      
-                      {currentGrade && (
-                        <div className="module-card__footer">
-                          <span className={`chip ${GRADE_COLORS[currentGrade]}`}>
-                            Grade {currentGrade}
-                          </span>
-                          <span className="points">
-                            {GRADE_OPTIONS.find(g => g.value === currentGrade)?.points.toFixed(1)} pts
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {renderGroupedModules(filteredYear4, 4)}
           </div>
         )}
       </div>

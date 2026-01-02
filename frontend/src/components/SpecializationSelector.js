@@ -36,7 +36,7 @@ const SpecializationSelector = ({
     setLoadingModules(true);
     try {
       // Load modules for this specialization
-      const lookupKey = spec.specializationCode || spec.specializationNamme || spec.name || spec._id;
+      const lookupKey = spec._id || spec.specializationCode || spec.specializationNamme || spec.name;
       const data = await getSpecializationModules(lookupKey);
       
       setSpecialization(spec);

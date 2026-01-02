@@ -13,27 +13,22 @@ const toComparable = (value = '') => value
   ? value.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '')
   : '';
 
-const normalizeCodes = (codes) => {
-  if (!codes) return [];
+const normalizeCodes = (input) => {
+  if (!input && input !== 0) return [];
 
-  let list = [];
-  if (Array.isArray(codes)) {
-    list = codes;
-  } else if (typeof codes === 'string') {
-    list = [codes];
-  } else {
-    return [];
-  }
-
-  return list
-    .flatMap((value) => {
-      if (!value && value !== 0) return [];
+  const toList = (value) => {
+    if (Array.isArray(value)) return value.flatMap(toList);
+    if (typeof value === 'string' || typeof value === 'number') {
       return value
         .toString()
         .split(',')
-        .map(piece => piece.trim())
+        .map(segment => segment.trim())
         .filter(Boolean);
-    })
+    }
+    return [];
+  };
+
+  return toList(input)
     .map(code => normalizeCodeValue(code))
     .filter(Boolean);
 };
@@ -151,33 +146,24 @@ const fetchModulesByCodes = async (codes = [], year) => {
   const normalizedCodes = normalizeCodes(codes);
   if (!normalizedCodes.length) return [];
 
-  const uniqueCodes = [...new Set(normalizedCodes)];
-  const codeQuery = {
-    $or: uniqueCodes.map(code => ({
+  const modules = [];
+
+  for (const code of normalizedCodes) {
+    const doc = await Module.findOne({
       moduleCode: new RegExp(`^${escapeRegex(code)}$`, 'i')
-    }))
-  };
+    }).lean();
 
-  const modules = await Module.find(codeQuery).lean();
-  const moduleMap = modules.reduce((acc, module) => {
-    acc[normalizeCodeValue(module.moduleCode)] = module;
-    return acc;
-  }, {});
-
-  return normalizedCodes.map(code => {
-    if (moduleMap[code]) {
-      return moduleMap[code];
-    }
-
-    return {
+    modules.push(doc || {
       moduleCode: code,
       moduleName: `Module ${code}`,
       credits: 0,
       year,
       semester: null,
       placeholder: true
-    };
-  });
+    });
+  }
+
+  return modules;
 };
 
 // Get all specializations
@@ -205,11 +191,19 @@ router.get('/:identifier/modules', async (req, res) => {
       return res.status(404).json({ error: 'Specialization not found' });
     }
 
-    const normalizedSpec = transformSpecialization(specialization);
+    const year3Codes = normalizeCodes(specialization.year3Modules);
+    const year4Codes = normalizeCodes(specialization.year4Modules);
+
+    console.log('[specializations] modules request', {
+      identifier: identifierRaw,
+      specializationId: specialization._id?.toString(),
+      year3Count: year3Codes.length,
+      year4Count: year4Codes.length
+    });
 
     const [year3Modules, year4Modules] = await Promise.all([
-      fetchModulesByCodes(normalizedSpec.year3Modules, 3),
-      fetchModulesByCodes(normalizedSpec.year4Modules, 4)
+      fetchModulesByCodes(year3Codes, 3),
+      fetchModulesByCodes(year4Codes, 4)
     ]);
 
     res.json({
