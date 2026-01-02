@@ -28,10 +28,7 @@ const ModuleSchema = new mongoose.Schema({
         required:true,
         enum:[1,2]
     },
-    GPA:{
-        type:Boolean,
-        default:true
-    },
+    
     specialization:{
         type:String,
         ref:'Specialization'

@@ -8,8 +8,7 @@ const router = express.Router();
 router.get('/common', async (req, res) => {
   try {
     const modules = await Module.find({
-      year: { $in: [1, 2] },
-      isCommon: true
+      year: { $in: [1, 2] }
     }).sort({ year: 1, semester: 1 });
     res.json(modules);
   } catch (err) {
@@ -88,6 +87,16 @@ router.delete('/:id', async (req, res, next) => {
 	} catch (error) {
 		next(error);
 	}
+});
+
+// Get all modules (for admin purposes)
+router.get('/', async (req, res, next) => {
+  try {
+    const modules = await Module.find().sort({ year: 1, semester: 1, moduleCode: 1 });
+    res.json(modules);
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
