@@ -31,15 +31,32 @@ router.get('/specialization/:code', async (req, res) => {
   try {
     const specialization = await Specialization.findOne({
       specializationCode: req.params.code
-    }).populate('year3Modules year4Modules');
-    
+    }).lean();
+
     if (!specialization) {
       return res.status(404).json({ error: 'Specialization not found' });
     }
-    
+
+    const fetchModulesByCodes = async (codes = []) => {
+      if (!codes.length) return [];
+      const modules = await Module.find({
+        moduleCode: { $in: codes }
+      }).lean();
+      const moduleMap = modules.reduce((acc, module) => {
+        acc[module.moduleCode] = module;
+        return acc;
+      }, {});
+      return codes.map(code => moduleMap[code]).filter(Boolean);
+    };
+
+    const [year3Modules, year4Modules] = await Promise.all([
+      fetchModulesByCodes(specialization.year3Modules),
+      fetchModulesByCodes(specialization.year4Modules)
+    ]);
+
     res.json({
-      year3Modules: specialization.year3Modules,
-      year4Modules: specialization.year4Modules
+      year3Modules,
+      year4Modules
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -55,6 +72,17 @@ router.post('/', async (req, res, next) => {
 		next(error);
 	}
 });
+
+//create a new specialization document
+router.post('/',async (req, res, next) => {
+  try {
+		const specDoc = await Specialization.create(req.body);
+		res.status(201).json(specDoc);
+	} catch (error) {
+		next(error);
+	}
+
+})
 
 // Update an existing module.
 router.put('/:id', async (req, res, next) => {
