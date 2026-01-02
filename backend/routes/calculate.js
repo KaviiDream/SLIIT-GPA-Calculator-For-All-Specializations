@@ -15,9 +15,15 @@ const GPA = {
 
 router.post('/gpa', async (req, res) => {
   try {
-    const { modules } = req.body; // Expecting an array of { credits, grade }
-    if (!modules || !Array.isArray(modules)) {
+    let modules = req.body.modules;
+    const grades = req.body.grades;
+
+    if ((!modules || !Array.isArray(modules)) && (!grades || !Array.isArray(grades))) {
       return res.status(400).json({ error: 'Invalid modules data' });
+    }
+
+    if ((!modules || !modules.length) && grades && Array.isArray(grades)) {
+      modules = grades;
     }
 
     //Filter modules with valid grades
