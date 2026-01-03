@@ -113,23 +113,23 @@ function App() {
           specialization={specialization}
         />
 
-        <div className="stats-bar">
-          <div className="stats-summary">
-            <div className="stat-metric">
-              <span className="stat-value">{totalGradedModules}</span>
-              <span className="stat-label">Graded Modules</span>
-            </div>
-            {specialization && (
+        {specialization && (
+          <div className="stats-bar">
+            <div className="stats-summary">
+              <div className="stat-metric">
+                <span className="stat-value">{totalGradedModules}</span>
+                <span className="stat-label">Graded Modules</span>
+              </div>
               <div className="stat-metric">
                 <span className="stat-value accent">{specialization.name}</span>
                 <span className="stat-label">Specialization</span>
               </div>
-            )}
+            </div>
+            <button onClick={resetCalculator} className="reset-button">
+              Reset Workspace
+            </button>
           </div>
-          <button onClick={resetCalculator} className="reset-button">
-            Reset Workspace
-          </button>
-        </div>
+        )}
 
         <div className="app-panel animate-fade-in">
           {currentStep === 1 && (
