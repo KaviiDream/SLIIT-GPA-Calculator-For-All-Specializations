@@ -62,6 +62,11 @@ const SpecializationSelector = ({
     }
   };
 
+  const handleClearSelection = () => {
+    setSpecialization(null);
+    setSpecializationModules({ year3: [], year4: [] });
+  };
+
   const toSearchable = (value = '') => (typeof value === 'string' ? value.toLowerCase() : '');
   const searchQuery = toSearchable(search.trim());
 
@@ -114,6 +119,27 @@ const SpecializationSelector = ({
         />
       </div>
 
+      <div className="specialization-toolbar">
+        <div className="selection-status" aria-live="polite">
+          {specialization ? (
+            <>
+              <span>Selected:</span>
+              <strong>{specialization.specializationName || specialization.name || specialization.specializationCode}</strong>
+            </>
+          ) : (
+            <span>No specialization selected</span>
+          )}
+        </div>
+        <button
+          type="button"
+          className="pill-button ghost"
+          onClick={handleClearSelection}
+          disabled={!specialization}
+        >
+          ⟲ Unselect specialization
+        </button>
+      </div>
+
       {filteredSpecializations.length === 0 ? (
         <div className="empty-state">No specializations match your search.</div>
       ) : (
@@ -127,7 +153,14 @@ const SpecializationSelector = ({
             const year4Count = spec.year4Modules?.length ?? spec.year4Count ?? 0;
             const minYear3 = formatMetric(spec.minCreditsYear3);
             const minYear4 = formatMetric(spec.minCreditsYear4);
-            const isSelected = specialization?.specializationCode === spec.specializationCode;
+            const isSelected = Boolean(
+              specialization &&
+              (
+                specialization._id === spec._id ||
+                specialization.specializationCode === spec.specializationCode ||
+                specialization.name === spec.name
+              )
+            );
 
             return (
               <div
@@ -142,10 +175,17 @@ const SpecializationSelector = ({
               >
                 <div className="specialization-card__head">
                   <div className="specialization-card__identity">
-                    
+                    <span className="eyebrow-label">Specialization</span>
                     <h3>{name}</h3>
                   </div>
-                  <span className="code-badge" aria-hidden="true">{code}</span>
+                  <div className="specialization-card__meta-tags">
+                    <span className="code-badge" aria-hidden="true">{code}</span>
+                    {isSelected && (
+                      <span className="selection-tag" aria-label={`${name} selected`}>
+                        Selected
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {programmeLine && (

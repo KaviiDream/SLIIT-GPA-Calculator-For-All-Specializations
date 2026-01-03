@@ -446,6 +446,17 @@ button:disabled {
   transition: var(--transition);
 }
 
+.pill-button.ghost {
+  background: transparent;
+  border-style: dashed;
+  color: var(--text-secondary);
+}
+
+.pill-button.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .pill-button:hover {
   border-color: var(--accent-blue);
   color: var(--accent-blue);
@@ -669,12 +680,51 @@ button:disabled {
 
 .section-footer {
   margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.section-footer.split {
+  justify-content: space-between;
 }
 
 .footnote {
   margin-top: 0.8rem;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.specialization-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.02);
+  margin-bottom: 1.25rem;
+}
+
+[data-theme='dark'] .specialization-toolbar {
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.selection-status {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.selection-status strong {
+  font-weight: 700;
+  color: var(--card-text);
 }
 
 .specialization-grid {
@@ -743,6 +793,13 @@ button:disabled {
   gap: 0.15rem;
 }
 
+.specialization-card__meta-tags {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .specialization-card__identity h3 {
   margin: 0.1rem 0 0;
   font-size: 1.2rem;
@@ -765,6 +822,20 @@ button:disabled {
   font-size: 0.8rem;
   background: rgba(124, 77, 255, 0.12);
   color: var(--accent-purple);
+  letter-spacing: 0.08em;
+}
+
+.selection-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(18, 184, 134, 0.15);
+  color: var(--accent-emerald);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 

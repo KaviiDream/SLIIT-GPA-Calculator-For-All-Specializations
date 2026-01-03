@@ -91,30 +91,6 @@ const Year3_4 = ({
     return `${palette} ${semesterClass}`;
   };
 
-  const renderLegend = () => (
-    <div className="module-legend">
-      <div className="module-legend__item">
-        <div className="legend-swatch-pair" aria-hidden="true">
-          <span className="legend-swatch tone-warm semester-one"></span>
-          <span className="legend-swatch tone-warm semester-two"></span>
-        </div>
-        <div>
-          <strong>Years 1 &amp; 3</strong>
-          <p>Warm oranges · Semester 1 lighter, Semester 2 deeper</p>
-        </div>
-      </div>
-      <div className="module-legend__item">
-        <div className="legend-swatch-pair" aria-hidden="true">
-          <span className="legend-swatch tone-cool semester-one"></span>
-          <span className="legend-swatch tone-cool semester-two"></span>
-        </div>
-        <div>
-          <strong>Years 2 &amp; 4</strong>
-          <p>Cool blues/teals · Semester shading follows the same pattern</p>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderModuleCard = (module, gradeYear) => {
     const currentGrade = getCurrentGrade(module.moduleCode);
@@ -242,68 +218,8 @@ const Year3_4 = ({
         </div>
       </div>
 
-      <div className="filter-panel">
-        <input
-          type="text"
-          placeholder="Search specialization modules"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
-        />
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">All Years</option>
-          <option value="3">Year 3 Only</option>
-          <option value="4">Year 4 Only</option>
-        </select>
-         <select
-           value={sortMode}
-           onChange={(e) => setSortMode(e.target.value)}
-           className="filter-select"
-         >
-           <option value="alphabetical">Sort · Code A-Z</option>
-           <option value="credits">Sort · Credits High-Low</option>
-         </select>
-        <button
-          onClick={() => {
-            setSearch('');
-            setSelectedYear('all');
-            setSelectedSemester('all');
-             setStatusFilter('all');
-             setSortMode('alphabetical');
-          }}
-          className="pill-button"
-        >
-          Clear
-        </button>
-        <div className="filter-pill-group" role="group" aria-label="Semester filter">
-          {['all', '1', '2'].map((option) => (
-            <button
-              key={option}
-              className={`pill-button filter-pill ${selectedSemester === option ? 'is-active' : ''}`}
-              onClick={() => setSelectedSemester(option)}
-            >
-              {option === 'all' ? 'All Semesters' : `Semester ${option}`}
-            </button>
-          ))}
-        </div>
-         <div className="filter-pill-group" role="group" aria-label="Completion filter">
-           {['all', 'completed', 'pending'].map((option) => (
-             <button
-               key={option}
-               className={`pill-button filter-pill ${statusFilter === option ? 'is-active' : ''}`}
-               onClick={() => setStatusFilter(option)}
-             >
-               {option === 'all' ? 'All Modules' : option === 'completed' ? 'Completed' : 'Pending'}
-             </button>
-           ))}
-         </div>
-      </div>
 
-      {renderLegend()}
+     
 
       {/* Modules List */}
       <div className="module-groups">

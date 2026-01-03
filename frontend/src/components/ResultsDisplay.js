@@ -108,7 +108,7 @@ const ResultsDisplay = ({ grades, specialization, resetCalculator, prevStep }) =
       {specialization && (
         <div className="specialization-banner">
           <div>
-            <h3>{specialization.name}</h3>
+            <h3>{specialization.specializationName}</h3>
             <span>Specialization · Years 3-4</span>
           </div>
           <span className="chip accent">Code: {specialization.specializationCode}</span>
@@ -151,7 +151,7 @@ const ResultsDisplay = ({ grades, specialization, resetCalculator, prevStep }) =
             </div>
           </header>
           <div className={`metric ${getGpaColorClass(results.wgpa)}`}>{results.wgpa}</div>
-          <p className="footnote">Weighted by yearly importance</p>
+          <p className="footnote">Weighted by yearly importance (2nd Year - 20% , 3rd Year - 30%, 4th Year - 50%)</p>
         </div>
       </div>
 
@@ -205,9 +205,6 @@ const ResultsDisplay = ({ grades, specialization, resetCalculator, prevStep }) =
       <div className="actions-row">
         <button onClick={prevStep} className="btn-secondary">
           ← Edit Grades
-        </button>
-        <button onClick={exportResults} className="btn-success">
-          📥 Export Results
         </button>
         <button onClick={printResults} className="btn-info">
           🖨️ Print Results

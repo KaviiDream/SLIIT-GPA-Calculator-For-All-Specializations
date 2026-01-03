@@ -68,12 +68,6 @@ const Year1_2 = ({ grades, updateGrade, getCurrentGrade, nextStep }) => {
     return `${palette} ${semesterClass}`;
   };
 
-  const renderLegend = () => (
-    <div className="module-legend">
-      
-     
-    </div>
-  );
 
   // Calculate stats
   const calculateStats = (year) => {
@@ -152,65 +146,6 @@ const Year1_2 = ({ grades, updateGrade, getCurrentGrade, nextStep }) => {
         </div>
       </div>
 
-      <div className="filter-panel">
-        <input
-          type="text"
-          placeholder="Search modules by code or name"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
-        />
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">All Years</option>
-          <option value="1">Year 1 Only</option>
-          <option value="2">Year 2 Only</option>
-        </select>
-        <button
-          onClick={() => {
-            setSearch('');
-            setSelectedYear('all');
-          }}
-          className="pill-button"
-        >
-          Clear
-        </button>
-        <select
-          value={sortMode}
-          onChange={(e) => setSortMode(e.target.value)}
-          className="filter-select"
-        >
-          <option value="alphabetical">Sort · Code A-Z</option>
-          <option value="credits">Sort · Credits High-Low</option>
-        </select>
-        <div className="filter-pill-group" role="group" aria-label="Semester filter">
-          {['all', '1', '2'].map((option) => (
-            <button
-              key={option}
-              className={`pill-button filter-pill ${selectedSemester === option ? 'is-active' : ''}`}
-              onClick={() => setSelectedSemester(option)}
-            >
-              {option === 'all' ? 'All Semesters' : `Semester ${option}`}
-            </button>
-          ))}
-        </div>
-        <div className="filter-pill-group" role="group" aria-label="Completion filter">
-          {['all', 'completed', 'pending'].map((option) => (
-            <button
-              key={option}
-              className={`pill-button filter-pill ${statusFilter === option ? 'is-active' : ''}`}
-              onClick={() => setStatusFilter(option)}
-            >
-              {option === 'all' ? 'All Modules' : option === 'completed' ? 'Completed' : 'Pending'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {renderLegend()}
 
       {Object.keys(groupedModules).length === 0 ? (
         <div className="empty-state">No modules match your filters.</div>

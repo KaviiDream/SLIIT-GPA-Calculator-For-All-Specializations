@@ -81,10 +81,6 @@ function App() {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  const exportWorkspace = () => {
-    window.print();
-  };
-
   // Get current grade for a module
   const getCurrentGrade = (moduleCode) => {
     const grade = grades.find(g => g.moduleCode === moduleCode);
@@ -116,17 +112,17 @@ function App() {
     <div className="app-shell">
       <div className="app-container">
         <header className="app-header">
-          <h1 className="app-title">University GPA Calculator</h1>
-          <p className="app-subtitle">Track CGPA and WGPA progress across all four academic years.</p>
+          <h1 className="app-title">SLIIT GPA Calculator</h1>
+          <p className="app-subtitle">Calculate CGPA and WGPA for all Specializations.</p>
         </header>
 
         <div className="utility-toolbar" aria-label="Workspace actions">
           <button className="pill-button" onClick={toggleTheme}>
             {theme === 'light' ? 'Enable Dark Mode' : 'Enable Light Mode'}
           </button>
-          <button className="pill-button" onClick={exportWorkspace}>
+          {/* <button className="pill-button" onClick={exportWorkspace}>
             Export / Print Snapshot
-          </button>
+          </button> */}
         </div>
 
         <Navigation
@@ -144,14 +140,11 @@ function App() {
                 <span className="stat-label">Graded Modules</span>
               </div>
               <div className="stat-metric">
-                <span className="stat-value accent">{specialization.name}</span>
+                <span className="stat-value accent">{specialization.specializationName}</span>
                 <span className="stat-label">Specialization</span>
               </div>
             </div>
             <div className="stats-actions">
-              <button onClick={exportWorkspace} className="reset-button" aria-label="Export workspace">
-                Export Snapshot
-              </button>
               <button onClick={resetCalculator} className="reset-button" aria-label="Reset workspace">
                 Reset Workspace
               </button>
