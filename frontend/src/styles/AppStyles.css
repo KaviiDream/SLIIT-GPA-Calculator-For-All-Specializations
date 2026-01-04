@@ -79,7 +79,7 @@ body {
   margin: 0;
   background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-mid) 50%, var(--bg-gradient-end));
   color: var(--text-primary);
-  min-height: 100vh;
+  min-height: 110vh;
 }
 
 .app-shell {

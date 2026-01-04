@@ -109,16 +109,6 @@ const SpecializationSelector = ({
         <p>Selecting a track tailors the Years 3 &amp; 4 module list to your pathway.</p>
       </div>
 
-      <div className="search-stack">
-        <input
-          type="text"
-          placeholder="Search specializations"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
-        />
-      </div>
-
       <div className="specialization-toolbar">
         <div className="selection-status" aria-live="polite">
           {specialization ? (
