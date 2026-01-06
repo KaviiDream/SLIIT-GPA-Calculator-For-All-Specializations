@@ -48,11 +48,19 @@ const SpecializationSelector = ({
       // Load modules for this specialization
       const lookupKey = spec._id || spec.specializationCode || spec.specializationNamme || spec.name;
       const data = await getSpecializationModules(lookupKey);
-      
+
+      const year4CompulsoryModules = data.year4CompulsoryModules || [];
+      const year4ElectiveModules = data.year4ElectiveModules || [];
+      const combinedYear4Modules = (data.year4Modules && data.year4Modules.length > 0)
+        ? data.year4Modules
+        : [...year4CompulsoryModules, ...year4ElectiveModules];
+
       setSpecialization(spec);
       setSpecializationModules({
         year3: data.year3Modules || [],
-        year4: data.year4Modules || []
+        year4: combinedYear4Modules,
+        year4Compulsory: year4CompulsoryModules,
+        year4Electives: year4ElectiveModules
       });
     } catch (err) {
       console.error('Failed to load specialization modules:', err);
@@ -64,7 +72,7 @@ const SpecializationSelector = ({
 
   const handleClearSelection = () => {
     setSpecialization(null);
-    setSpecializationModules({ year3: [], year4: [] });
+    setSpecializationModules({ year3: [], year4: [], year4Compulsory: [], year4Electives: [] });
   };
 
   const toSearchable = (value = '') => (typeof value === 'string' ? value.toLowerCase() : '');
@@ -140,7 +148,9 @@ const SpecializationSelector = ({
             const programmeLine = spec.programme || spec.programmeName || spec.programTitle || '';
             const summary = spec.description || spec.summary || 'No description available.';
             const year3Count = spec.year3Modules?.length ?? spec.year3Count ?? 0;
-            const year4Count = spec.year4Modules?.length ?? spec.year4Count ?? 0;
+            const year4Count = spec.year4Modules?.length ?? (
+              (spec.year4Compulsory?.length ?? 0) + (spec.year4Electives?.length ?? 0)
+            );
             const minYear3 = formatMetric(spec.minCreditsYear3);
             const minYear4 = formatMetric(spec.minCreditsYear4);
             const isSelected = Boolean(

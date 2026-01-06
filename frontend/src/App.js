@@ -12,7 +12,9 @@ function App() {
   const [specialization, setSpecialization] = useState(null);
   const [specializationModules, setSpecializationModules] = useState({
     year3: [],
-    year4: []
+    year4: [],
+    year4Compulsory: [],
+    year4Electives: []
   });
   const [theme, setTheme] = useState(() => localStorage.getItem('gpaTheme') || 'light');
 
@@ -30,7 +32,14 @@ function App() {
         
         if (savedGrades) setGrades(savedGrades);
         if (savedSpec) setSpecialization(savedSpec);
-        if (savedModules) setSpecializationModules(savedModules);
+        if (savedModules) {
+          setSpecializationModules({
+            year3: savedModules.year3 || [],
+            year4: savedModules.year4 || [],
+            year4Compulsory: savedModules.year4Compulsory || [],
+            year4Electives: savedModules.year4Electives || []
+          });
+        }
         if (savedStep) setCurrentStep(savedStep);
       } catch (error) {
         console.error('Error loading saved state:', error);
@@ -92,7 +101,7 @@ function App() {
     if (window.confirm('Are you sure you want to reset all data? This will clear all your grades and selections.')) {
       setGrades([]);
       setSpecialization(null);
-      setSpecializationModules({ year3: [], year4: [] });
+      setSpecializationModules({ year3: [], year4: [], year4Compulsory: [], year4Electives: [] });
       setCurrentStep(1);
       localStorage.removeItem('gpaCalculatorState');
     }

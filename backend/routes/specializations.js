@@ -72,7 +72,15 @@ const sanitizeSpecializationPayload = (payload = {}) => {
   }
 
   sanitized.year3Modules = normalizeCodes(payload.year3Modules);
-  sanitized.year4Modules = normalizeCodes(payload.year4Modules);
+
+  const normalizedYear4Compulsory = normalizeCodes(payload.year4Compulsory);
+  const normalizedLegacyYear4 = normalizeCodes(payload.year4Modules);
+  const normalizedYear4Electives = normalizeCodes(payload.year4Electives);
+
+  sanitized.year4Compulsory = normalizedYear4Compulsory.length
+    ? normalizedYear4Compulsory
+    : normalizedLegacyYear4;
+  sanitized.year4Electives = normalizedYear4Electives;
 
   return sanitized;
 };
@@ -83,13 +91,28 @@ const transformSpecialization = (doc) => {
   const name = plain.name || plain.specializationNamme || plain.specializationCode || 'Unnamed Specialization';
   const code = plain.specializationCode || buildSpecializationCode(plain) || plain._id?.toString();
 
+  const normalizedYear3 = normalizeCodes(plain.year3Modules);
+  const normalizedYear4Compulsory = normalizeCodes(plain.year4Compulsory);
+  const normalizedYear4Electives = normalizeCodes(plain.year4Electives);
+  const normalizedLegacyYear4 = normalizeCodes(plain.year4Modules);
+
+  const dedupedYear4 = (list = []) => Array.from(new Set(list));
+  const year4Modules = normalizedLegacyYear4.length
+    ? normalizedLegacyYear4
+    : dedupedYear4([
+        ...normalizedYear4Compulsory,
+        ...normalizedYear4Electives
+      ]);
+
   return {
     ...plain,
     name,
     specializationNamme: plain.specializationNamme || name,
     specializationCode: code,
-    year3Modules: normalizeCodes(plain.year3Modules),
-    year4Modules: normalizeCodes(plain.year4Modules)
+    year3Modules: normalizedYear3,
+    year4Compulsory: normalizedYear4Compulsory,
+    year4Electives: normalizedYear4Electives,
+    year4Modules
   };
 };
 
@@ -192,23 +215,46 @@ router.get('/:identifier/modules', async (req, res) => {
     }
 
     const year3Codes = normalizeCodes(specialization.year3Modules);
-    const year4Codes = normalizeCodes(specialization.year4Modules);
+    const year4CompulsoryCodes = normalizeCodes(specialization.year4Compulsory);
+    const year4ElectiveCodes = normalizeCodes(specialization.year4Electives);
+    const legacyYear4Codes = normalizeCodes(specialization.year4Modules);
+
+    const hasCategorizedYear4 = year4CompulsoryCodes.length > 0 || year4ElectiveCodes.length > 0;
+    const resolvedYear4CompulsoryCodes = hasCategorizedYear4
+      ? year4CompulsoryCodes
+      : legacyYear4Codes;
+    const resolvedYear4ElectiveCodes = hasCategorizedYear4
+      ? year4ElectiveCodes
+      : [];
 
     console.log('[specializations] modules request', {
       identifier: identifierRaw,
       specializationId: specialization._id?.toString(),
       year3Count: year3Codes.length,
-      year4Count: year4Codes.length
+      year4CompulsoryCount: resolvedYear4CompulsoryCodes.length,
+      year4ElectiveCount: resolvedYear4ElectiveCodes.length
     });
 
-    const [year3Modules, year4Modules] = await Promise.all([
+    const [
+      year3Modules,
+      year4CompulsoryModules,
+      year4ElectiveModules
+    ] = await Promise.all([
       fetchModulesByCodes(year3Codes, 3),
-      fetchModulesByCodes(year4Codes, 4)
+      fetchModulesByCodes(resolvedYear4CompulsoryCodes, 4),
+      fetchModulesByCodes(resolvedYear4ElectiveCodes, 4)
     ]);
+
+    const combinedYear4Modules = [
+      ...year4CompulsoryModules,
+      ...year4ElectiveModules
+    ];
 
     res.json({
       year3Modules,
-      year4Modules
+      year4Modules: combinedYear4Modules,
+      year4CompulsoryModules,
+      year4ElectiveModules
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

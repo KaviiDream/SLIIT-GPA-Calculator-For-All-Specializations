@@ -550,6 +550,22 @@ button:disabled {
   color: rgba(15, 23, 42, 0.55);
 }
 
+.module-subgroup {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.module-subgroup + .module-subgroup {
+  margin-top: 1rem;
+}
+
+[data-theme='dark'] .module-subgroup {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .module-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -593,6 +609,21 @@ button:disabled {
 
 .module-card.tone-cool.semester-one { --module-bg: var(--cool-sem1); }
 .module-card.tone-cool.semester-two { --module-bg: var(--cool-sem2); }
+
+.module-card.tone-heavy {
+  --module-bg: linear-gradient(135deg, rgba(76, 110, 245, 0.22), rgba(124, 77, 242, 0.25));
+  --module-border: rgba(76, 110, 245, 0.45);
+  --module-shadow: 0 18px 40px rgba(76, 110, 245, 0.35);
+  --module-shadow-hover: 0 26px 56px rgba(76, 110, 245, 0.38);
+  color: var(--card-text);
+}
+
+.module-card.tone-light {
+  --module-bg: rgba(226, 232, 240, 0.35);
+  --module-border: rgba(148, 163, 184, 0.55);
+  --module-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --module-shadow-hover: 0 18px 42px rgba(15, 23, 42, 0.16);
+}
 
 .module-card__shell {
   display: flex;

@@ -17,9 +17,22 @@ const Year3_4 = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortMode, setSortMode] = useState('alphabetical');
 
+  const year3ModuleList = specializationModules.year3 || [];
+  const year4CompulsoryModules = specializationModules.year4Compulsory || [];
+  const year4ElectiveModules = specializationModules.year4Electives || [];
+  const combinedYear4Modules = (specializationModules.year4 && specializationModules.year4.length > 0)
+    ? specializationModules.year4
+    : [...year4CompulsoryModules, ...year4ElectiveModules];
+  const hasYear4Categories = year4CompulsoryModules.length > 0 || year4ElectiveModules.length > 0;
+  const effectiveYear4Compulsory = hasYear4Categories ? year4CompulsoryModules : combinedYear4Modules;
+  const effectiveYear4Electives = hasYear4Categories ? year4ElectiveModules : [];
+  const totalYear4Modules = combinedYear4Modules.length;
+  const totalModuleCount = year3ModuleList.length + totalYear4Modules;
+  const showYear3 = selectedYear === 'all' || selectedYear === '3';
+  const showYear4 = selectedYear === 'all' || selectedYear === '4';
+
   // Calculate stats
-  const calculateYearStats = (year) => {
-    const modules = year === 3 ? specializationModules.year3 : specializationModules.year4;
+  const calculateYearStats = (modules = []) => {
     const gradedModules = modules.filter(module => getCurrentGrade(module.moduleCode));
     
     const totalCredits = modules.reduce((sum, m) => sum + m.credits, 0);
@@ -34,8 +47,8 @@ const Year3_4 = ({
     };
   };
 
-  const year3Stats = calculateYearStats(3);
-  const year4Stats = calculateYearStats(4);
+  const year3Stats = calculateYearStats(year3ModuleList);
+  const year4Stats = calculateYearStats(combinedYear4Modules);
 
   // Filter modules
   const filterModules = (modules) => {
@@ -58,7 +71,8 @@ const Year3_4 = ({
 
   const groupBySemester = (modules) => {
     return modules.reduce((acc, module) => {
-      const semesterValue = Number.isFinite(module.semester) ? module.semester : 1;
+      const parsedSemester = Number(module.semester);
+      const semesterValue = Number.isFinite(parsedSemester) ? parsedSemester : 1;
       const semesterLabel = `Semester ${semesterValue}`;
 
       if (!acc[semesterLabel]) {
@@ -78,11 +92,17 @@ const Year3_4 = ({
     return copy.sort((a, b) => (a.moduleCode || '').localeCompare(b.moduleCode || ''));
   };
 
-  const filteredYear3 = selectedYear === 'all' || selectedYear === '3'
-    ? sortModules(filterModules(specializationModules.year3))
+  const filteredYear3 = showYear3
+    ? sortModules(filterModules(year3ModuleList))
     : [];
-  const filteredYear4 = selectedYear === 'all' || selectedYear === '4'
-    ? sortModules(filterModules(specializationModules.year4))
+  const filteredYear4Compulsory = showYear4
+    ? sortModules(filterModules(effectiveYear4Compulsory))
+    : [];
+  const filteredYear4Electives = showYear4
+    ? sortModules(filterModules(effectiveYear4Electives))
+    : [];
+  const filteredYear4 = showYear4
+    ? [...filteredYear4Compulsory, ...filteredYear4Electives]
     : [];
 
   const toneClasses = (year, semester) => {
@@ -92,17 +112,25 @@ const Year3_4 = ({
   };
 
 
-  const renderModuleCard = (module, gradeYear) => {
+  const renderModuleCard = (module, gradeYear, toneVariant = 'default') => {
     const currentGrade = getCurrentGrade(module.moduleCode);
     const safeName = module.moduleName || module.moduleCode;
     const creditLabel = module.credits ? `${module.credits} credits` : 'Credits not set';
     const semester = Number.isFinite(Number(module.semester)) ? Number(module.semester) : 1;
-    const toneClassNames = toneClasses(gradeYear, semester);
+    const paletteClasses = toneClasses(gradeYear, semester);
+    const variantClass = toneVariant === 'compulsory'
+      ? 'tone-heavy'
+      : toneVariant === 'elective'
+        ? 'tone-light'
+        : '';
+    const cardClassName = ['module-card', paletteClasses, variantClass, currentGrade ? 'is-selected' : '']
+      .filter(Boolean)
+      .join(' ');
 
     return (
       <div
         key={`${module.moduleCode}-${gradeYear}-${semester}`}
-        className={`module-card ${toneClassNames} ${currentGrade ? 'is-selected' : ''}`}
+        className={cardClassName}
       >
         <div className="module-card__shell">
           <div className="module-card__header">
@@ -145,7 +173,12 @@ const Year3_4 = ({
     );
   };
 
-  const renderGroupedModules = (modules, year) => {
+  const renderGroupedModules = (modules, year, options = {}) => {
+    const {
+      emptyMessage,
+      toneVariant = 'default',
+      titleFormatter
+    } = options;
     const groups = groupBySemester(modules);
     const groupEntries = Object.entries(groups)
       .sort(([, groupA], [, groupB]) => groupA.order - groupB.order);
@@ -153,18 +186,88 @@ const Year3_4 = ({
     if (!groupEntries.length) {
       return (
         <div className="empty-state">
-          {`No Year ${year} modules found matching your search.`}
+          {emptyMessage || `No Year ${year} modules found matching your search.`}
         </div>
       );
     }
 
-    return groupEntries.map(([label, group]) => (
-      <div key={`${year}-${label}`} className="module-group animate-slide-up">
-        
-        <div className="module-group__title">Year {year} - Semester 1/2</div>
-        <div className="module-grid">
-          {group.modules.map((module) => renderModuleCard(module, year))}
+    return groupEntries.map(([label, group]) => {
+      const titleText = typeof titleFormatter === 'function'
+        ? titleFormatter(label, year)
+        : `Year ${year} · ${label}`;
+
+      return (
+        <div key={`${year}-${label}`} className="module-group animate-slide-up">
+          <div className="module-group__title">{titleText}</div>
+          <div className="module-grid">
+            {group.modules.map((module) => renderModuleCard(module, year, toneVariant))}
+          </div>
         </div>
+      );
+    });
+  };
+
+  const renderYear4Grid = (modules, sectionLabel, toneVariant, emptyMessage) => {
+    if (!modules.length) {
+      return (
+        <div className="empty-state">
+          {emptyMessage || `No Year 4 ${sectionLabel.toLowerCase()} modules match your filters.`}
+        </div>
+      );
+    }
+
+    return (
+      <div className="module-grid">
+        {modules.map((module) => renderModuleCard(module, 4, toneVariant))}
+      </div>
+    );
+  };
+
+  const renderYear4Sections = () => {
+    if (totalYear4Modules === 0) {
+      return renderGroupedModules([], 4, {
+        emptyMessage: 'No Year 4 modules available for this specialization.'
+      });
+    }
+
+    const sections = [
+      {
+        key: 'compulsory',
+        title: 'Compulsory Modules',
+        modules: filteredYear4Compulsory,
+        total: effectiveYear4Compulsory.length,
+        toneVariant: 'compulsory',
+        emptyMessage: 'No Year 4 compulsory modules found matching your search.'
+      },
+      {
+        key: 'electives',
+        title: 'Elective Modules',
+        modules: filteredYear4Electives,
+        total: effectiveYear4Electives.length,
+        toneVariant: 'elective',
+        emptyMessage: 'No Year 4 elective modules found matching your search.'
+      }
+    ];
+
+    const sectionsWithModules = sections.filter(section => section.total > 0);
+
+    if (!sectionsWithModules.length) {
+      return renderGroupedModules([], 4, {
+        emptyMessage: 'No Year 4 modules match your filters.'
+      });
+    }
+
+    return sectionsWithModules.map(section => (
+      <div key={`year4-${section.key}`} className="module-subgroup">
+        <div className="module-group__meta">
+          <h3>
+            Year 4 · {section.title}
+            {section.modules.length > 0 && ` (${section.modules.length})`}
+          </h3>
+          <span>{section.total} total modules</span>
+        </div>
+
+        {renderYear4Grid(section.modules, section.title, section.toneVariant, section.emptyMessage)}
       </div>
     ));
   };
@@ -185,7 +288,7 @@ const Year3_4 = ({
       <div className="section-heading">
         <h2>Years 3 &amp; 4 · {specialization.name}</h2>
         <p>
-          Grade each specialization module. {specializationModules.year3.length + specializationModules.year4.length} modules pending.
+          Grade each specialization module. {totalModuleCount} modules pending.
         </p>
       </div>
 
@@ -225,11 +328,11 @@ const Year3_4 = ({
       {/* Modules List */}
       <div className="module-groups">
         {/* Year 3 Modules */}
-        {(selectedYear === 'all' || selectedYear === '3') && (
+        {showYear3 && (
           <div className="animate-slide-up">
             <div className="module-group__meta">
               <h3>Year 3 Modules {filteredYear3.length > 0 && `(${filteredYear3.length})`}</h3>
-              <span>{specializationModules.year3.length} total modules</span>
+              <span>{year3ModuleList.length} total modules</span>
             </div>
             
             {renderGroupedModules(filteredYear3, 3)}
@@ -237,14 +340,14 @@ const Year3_4 = ({
         )}
 
         {/* Year 4 Modules */}
-        {(selectedYear === 'all' || selectedYear === '4') && (
+        {showYear4 && (
           <div className="animate-slide-up">
             <div className="module-group__meta">
               <h3>Year 4 Modules {filteredYear4.length > 0 && `(${filteredYear4.length})`}</h3>
-              <span>{specializationModules.year4.length} total modules</span>
+              <span>{totalYear4Modules} total modules</span>
             </div>
             
-            {renderGroupedModules(filteredYear4, 4)}
+            {renderYear4Sections()}
           </div>
         )}
       </div>

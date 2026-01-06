@@ -22,7 +22,11 @@ const SpecializationSchema = new mongoose.Schema({
         type: [String],
         default: []
     },
-    year4Modules: {
+    year4Compulsory: {
+        type: [String],
+        default: []
+    },
+    year4Electives: {
         type: [String],
         default: []
     },
