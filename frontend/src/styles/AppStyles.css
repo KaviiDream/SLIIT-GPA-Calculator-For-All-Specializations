@@ -95,7 +95,7 @@ body {
   position: absolute;
   inset: 0;
   background: var(--bg-noise);
-  opacity: 0.65;
+  opacity: 0.67;
   animation: floatPattern 18s ease-in-out infinite alternate;
   z-index: -1;
 }
