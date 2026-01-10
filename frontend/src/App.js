@@ -18,33 +18,21 @@ function App() {
   });
   const [theme, setTheme] = useState(() => localStorage.getItem('gpaTheme') || 'light');
 
-  // Load saved state from localStorage
+  // Clear state on app restart
   useEffect(() => {
-    const savedState = localStorage.getItem('gpaCalculatorState');
-    if (savedState) {
-      try {
-        const { 
-          grades: savedGrades, 
-          specialization: savedSpec,
-          specializationModules: savedModules,
-          currentStep: savedStep 
-        } = JSON.parse(savedState);
-        
-        if (savedGrades) setGrades(savedGrades);
-        if (savedSpec) setSpecialization(savedSpec);
-        if (savedModules) {
-          setSpecializationModules({
-            year3: savedModules.year3 || [],
-            year4: savedModules.year4 || [],
-            year4Compulsory: savedModules.year4Compulsory || [],
-            year4Electives: savedModules.year4Electives || []
-          });
-        }
-        if (savedStep) setCurrentStep(savedStep);
-      } catch (error) {
-        console.error('Error loading saved state:', error);
-      }
-    }
+    // Clear the saved state from localStorage on app mount
+    localStorage.removeItem('gpaCalculatorState');
+    
+    // Reset all state to initial values
+    setGrades([]);
+    setSpecialization(null);
+    setSpecializationModules({
+      year3: [],
+      year4: [],
+      year4Compulsory: [],
+      year4Electives: []
+    });
+    setCurrentStep(1);
   }, []);
 
   // Save state to localStorage
