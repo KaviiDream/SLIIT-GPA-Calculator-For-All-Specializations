@@ -62,6 +62,27 @@ const Year1_2 = ({ grades, updateGrade, getCurrentGrade, nextStep }) => {
     return acc;
   }, {});
 
+  // Sort the grouped modules by year and semester
+  const sortedGroupKeys = Object.keys(groupedModules).sort((a, b) => {
+    const aMatch = a.match(/Year (\d+) · Semester (\d+)/);
+    const bMatch = b.match(/Year (\d+) · Semester (\d+)/);
+    
+    const aYear = parseInt(aMatch[1]);
+    const aSemester = parseInt(aMatch[2]);
+    const bYear = parseInt(bMatch[1]);
+    const bSemester = parseInt(bMatch[2]);
+    
+    if (aYear !== bYear) {
+      return aYear - bYear;
+    }
+    return aSemester - bSemester;
+  });
+
+  const orderedGroupedModules = {};
+  sortedGroupKeys.forEach(key => {
+    orderedGroupedModules[key] = groupedModules[key];
+  });
+
   const toneClasses = (year, semester) => {
     const palette = year === 1 || year === 3 ? 'tone-warm' : 'tone-cool';
     const semesterClass = semester === 2 ? 'semester-two' : 'semester-one';
@@ -147,11 +168,11 @@ const Year1_2 = ({ grades, updateGrade, getCurrentGrade, nextStep }) => {
       </div>
 
 
-      {Object.keys(groupedModules).length === 0 ? (
+      {Object.keys(orderedGroupedModules).length === 0 ? (
         <div className="empty-state">No modules match your filters.</div>
       ) : (
         <div className="module-groups">
-          {Object.entries(groupedModules).map(([groupName, groupModules]) => (
+          {Object.entries(orderedGroupedModules).map(([groupName, groupModules]) => (
             <div key={groupName} className="module-group animate-slide-up">
               <div className="module-group__title">{groupName}</div>
               <div className="module-grid">
