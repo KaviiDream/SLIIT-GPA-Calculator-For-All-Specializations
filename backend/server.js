@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const mongoUri = process.env.MONGO_URL || process.env.MONGODB_URL;
+const mongoUri = process.env.MONGODB_URL || 5000;
 
 if (!mongoUri) {
   console.error('Missing required MONGO_URL (or MONGODB_URL) environment variable. Please set it in your .env file.');
