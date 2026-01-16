@@ -105,12 +105,12 @@ const Year3_4 = ({
     ? [...filteredYear4Compulsory, ...filteredYear4Electives]
     : [];
 
+  // Match Year 1 & 2 module card color logic
   const toneClasses = (year, semester) => {
     const palette = year === 1 || year === 3 ? 'tone-warm' : 'tone-cool';
     const semesterClass = semester === 2 ? 'semester-two' : 'semester-one';
     return `${palette} ${semesterClass}`;
   };
-
 
   const renderModuleCard = (module, gradeYear, toneVariant = 'default') => {
     const currentGrade = getCurrentGrade(module.moduleCode);

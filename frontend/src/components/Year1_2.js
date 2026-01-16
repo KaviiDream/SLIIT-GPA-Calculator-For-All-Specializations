@@ -118,6 +118,7 @@ const Year1_2 = ({ grades, updateGrade, getCurrentGrade, nextStep }) => {
       </div>
     );
   }
+  
 
   if (error) {
     return (
@@ -230,10 +231,11 @@ const Year1_2 = ({ grades, updateGrade, getCurrentGrade, nextStep }) => {
         </div>
       )}
 
-      <div className="section-footer">
-        <button onClick={nextStep} className="btn-primary btn-block">
+      <div className="section-footer stack-right">
+        <button onClick={nextStep} className="btn-primary">
           Continue to Specialization →
         </button>
+        
         <p className="footnote">
           {modules.length} modules loaded · {grades.filter(g => g.year <= 2 && g.grade).length} graded
         </p>
