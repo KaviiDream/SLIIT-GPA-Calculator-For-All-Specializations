@@ -16,7 +16,6 @@ function App() {
     year4Compulsory: [],
     year4Electives: []
   });
-  const [theme, setTheme] = useState(() => localStorage.getItem('gpaTheme') || 'light');
 
   // Clear state on app restart
   useEffect(() => {
@@ -48,9 +47,8 @@ function App() {
   }, [grades, specialization, specializationModules, currentStep]);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('gpaTheme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
 
   // Update grade handler
   const updateGrade = (moduleCode, grade, moduleData) => {
@@ -72,10 +70,6 @@ function App() {
       
       return filtered;
     });
-  };
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
   // Get current grade for a module
@@ -112,15 +106,6 @@ function App() {
           <h1 className="app-title">SLIIT GPA Calculator</h1>
           <p className="app-subtitle">Calculate CGPA and WGPA for all Specializations.</p>
         </header>
-
-        <div className="utility-toolbar" aria-label="Workspace actions">
-          <button className="pill-button" onClick={toggleTheme}>
-            {theme === 'light' ? 'Enable Dark Mode' : 'Enable Light Mode'}
-          </button>
-          {/* <button className="pill-button" onClick={exportWorkspace}>
-            Export / Print Snapshot
-          </button> */}
-        </div>
 
         <Navigation
           currentStep={currentStep}
